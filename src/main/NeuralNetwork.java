@@ -5,7 +5,7 @@ import java.util.Random;
 public class NeuralNetwork {
 	
 	private static double INIT_RANGE = 1;
-	private static int BATCH_LENGTH = 100;
+	private static int BATCH_LENGTH = 10;
 	private static double EPSILON = 0.0001;
 	
 	private double learningRate = 0.1d;
@@ -160,6 +160,8 @@ public class NeuralNetwork {
 		Matrix[] weightSum = new Matrix[layers-1];
 		Matrix[] biasSum = new Matrix[layers-1];
 		
+		double average = 1.0d/(double)BATCH_LENGTH;
+		
 		for (int k = 0; k < layers-1; k++) {
 			weightSum[k] = Matrix.zero(weights[k].getRows(), weights[k].getCols());
 			biasSum[k] = Matrix.zero(biases[k].getRows(), biases[k].getCols());
@@ -170,8 +172,8 @@ public class NeuralNetwork {
 			if ((i % BATCH_LENGTH) == 0 && i != 0) {
 				
 				for (int j = 0; j < layers-1; j++) {
-					weights[j] = Matrix.add(weights[j], Matrix.multiply(weightSum[j], -1*learningRate));
-					biases[j] = Matrix.add(biases[j], Matrix.multiply(biasSum[j], -1*learningRate));
+					weights[j] = Matrix.add(weights[j], Matrix.multiply(weightSum[j], -1*learningRate*average));
+					biases[j] = Matrix.add(biases[j], Matrix.multiply(biasSum[j], -1*learningRate*average));
 				}
 				
 				for (int k = 0; k < layers-1; k++) {
