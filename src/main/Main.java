@@ -19,9 +19,10 @@ import javax.swing.JMenuItem;
 
 public class Main {
 
-	static final int[] LAYER_LENGTHS = { 784, 800, 10 };
-//	static final int[] LAYER_LENGTHS = { 784, 40, 40, 30, 10 };
-	static final int LAYERS = 3;
+//	static final int[] LAYER_LENGTHS = { 784, 800, 10 };
+	static final int[] LAYER_LENGTHS = { 784, 800, 100, 20, 10 };
+//	static final int[] LAYER_LENGTHS = { 784, 16, 16, 10 };
+	static final int LAYERS = 5;
 	
 	private JFrame frame;
 	private JTextField txtIndex;
