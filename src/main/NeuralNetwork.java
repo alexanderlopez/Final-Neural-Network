@@ -1,11 +1,12 @@
 package main;
 
 import java.util.Random;
+import java.util.function.BiConsumer;
 
 public class NeuralNetwork {
 	
+	public static int BATCH_LENGTH = 10;
 	private static double INIT_RANGE = 1;
-	private static int BATCH_LENGTH = 10;
 	private static double EPSILON = 0.0001;
 	
 	private double learningRate = 0.1d;
@@ -196,6 +197,52 @@ public class NeuralNetwork {
 		}
 	}
 	
+	public void learn(ResourceHandler r, double epochs, BiConsumer<Integer, Double> update) {
+		//Finished ResourceHandler. Test the network computing values, and then proceed to prepare for backpropagation
+		//this method. It is given the number of epochs to test and etc, etc.
+		int n = (int)Math.round(epochs*r.getDataLength());
+		
+		Matrix[] weightSum = new Matrix[layers-1];
+		Matrix[] biasSum = new Matrix[layers-1];
+		
+		double average = 1.0d/(double)BATCH_LENGTH;
+		
+		for (int k = 0; k < layers-1; k++) {
+			weightSum[k] = Matrix.zero(weights[k].getRows(), weights[k].getCols());
+			biasSum[k] = Matrix.zero(biases[k].getRows(), biases[k].getCols());
+		}
+		
+		for (int i = 0; i < n; i++) {
+			
+			if ((i % BATCH_LENGTH) == 0 && i != 0) {
+				
+				update.accept(i, epochs);
+				
+				for (int j = 0; j < layers-1; j++) {
+					weights[j] = Matrix.add(weights[j], Matrix.multiply(weightSum[j], -1*learningRate*average));
+					biases[j] = Matrix.add(biases[j], Matrix.multiply(biasSum[j], -1*learningRate*average));
+				}
+				
+				for (int k = 0; k < layers-1; k++) {
+					weightSum[k] = Matrix.zero(weights[k].getRows(), weights[k].getCols());
+					biasSum[k] = Matrix.zero(biases[k].getRows(), biases[k].getCols());
+				}
+			}
+			
+			int index = i % r.getDataLength();
+			
+			Matrix input = r.getImageData(index);
+			int expectedOutput = r.getLabel(index);
+			
+			Matrix[][] result = backprop(input, expectedOutput);
+			
+			for (int j = 0; j < layers-1; j++) {
+				weightSum[j]=Matrix.add(weightSum[j], result[j][0]);
+				biasSum[j]=Matrix.add(biasSum[j], result[j][1]);
+			}
+		}
+	}
+	
 	private Matrix reverseSigmoid(Matrix A) {
 		Matrix output = new Matrix(A.getRows(), A.getCols());
 		
@@ -265,5 +312,21 @@ public class NeuralNetwork {
 		}
 		
 		return error;
+	}
+	
+	public Matrix[] getWeights() {
+		return weights;
+	}
+	
+	public Matrix[] getBiases() {
+		return biases;
+	}
+	
+	public double getLearningRate() {
+		return learningRate;
+	}
+	
+	public int[] getLayers() {
+		return layerLengths;
 	}
 }
