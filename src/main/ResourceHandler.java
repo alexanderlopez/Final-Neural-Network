@@ -34,18 +34,18 @@ public class ResourceHandler {
 		
 		switch (set) {
 		case 0:
-			useSetLabel = "/train-labels-idx1-ubyte";
-			useSetImage = "/train-images-idx3-ubyte";
+			useSetLabel = "train-labels-idx1-ubyte";
+			useSetImage = "train-images-idx3-ubyte";
 			break;
 		case 1:
-			useSetLabel = "/t10k-labels-idx1-ubyte";
-			useSetImage = "/t10k-images-idx3-ubyte";
+			useSetLabel = "t10k-labels-idx1-ubyte";
+			useSetImage = "t10k-images-idx3-ubyte";
 			break;
 		default:
 			return;
 		}
 		
-		InputStream stream = ClassLoader.class.getResourceAsStream(useSetImage);
+		InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(useSetImage);
 		
 		byte[] buffer = new byte[16];
 		stream.read(buffer, 0, 16);
@@ -60,10 +60,18 @@ public class ResourceHandler {
 		if (magicI != MAGIC_IMAGES)
 			return;
 		
+		//SPECIAL READ TO GUARANTEE AL DATA IS STORED
 		imageData = new byte[imageLength*rows*cols];
-		stream.read(imageData, 0, imageLength*rows*cols);
 		
-		stream = ClassLoader.class.getResourceAsStream(useSetLabel);
+		byte[] buff = new byte[1024];
+		int offset = 0;
+		int read = 0;
+		while ((read = stream.read(buff, 0, 1024)) != -1) {
+			System.arraycopy(buff, 0, imageData, offset, read);
+			offset += read;
+		}
+		
+		stream = ClassLoader.getSystemClassLoader().getResourceAsStream(useSetLabel);
 		
 		buffer = new byte[8];
 		stream.read(buffer, 0, 8);
@@ -77,8 +85,16 @@ public class ResourceHandler {
 		if (magicL != MAGIC_LABEL)
 			return;
 		
+		//SPECIAL METHOD TO GUARANTEE ALL IS READ
 		labelData = new byte[labelsLength];
-		stream.read(labelData, 0, labelsLength);
+		
+		buff = new byte[1024];
+		offset = 0;
+		read = 0;
+		while ((read = stream.read(buff, 0, 1024)) != -1) {
+			System.arraycopy(buff, 0, labelData, offset, read);
+			offset += read;
+		}
 		
 		stream.close();
 	}
