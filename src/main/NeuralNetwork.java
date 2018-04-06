@@ -314,6 +314,18 @@ public class NeuralNetwork {
 		return error;
 	}
 	
+	public void setWeights(Matrix[] _weights) {
+		weights = _weights;
+	}
+	
+	public void setBiases(Matrix[] _biases) {
+		biases = _biases;
+	}
+	
+	public void setLearningRate(double rate) {
+		learningRate = rate;
+	}
+	
 	public Matrix[] getWeights() {
 		return weights;
 	}

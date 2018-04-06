@@ -1,7 +1,9 @@
 package main;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
@@ -116,11 +118,17 @@ public class Program {
 				if (tokens[0].equals("mcompute"))
 					mcompute(tokens[1]);
 				
+				if (tokens[0].equals("rate"))
+					changeRate(tokens[1]);
+				
 				if (tokens[0].equals("print"))
 					print();
 				
 				if (tokens[0].equals("export"))
 					export(tokens[1]);
+				
+				if (tokens[0].equals("import"))
+					getImport(tokens[1]);
 				
 				if (tokens[0].equals("check"))
 					check(tokens[1], tokens[2]);
@@ -134,6 +142,12 @@ public class Program {
 		}
 	}
 	
+	private void changeRate(String string) {
+		double learningRate = Double.parseDouble(string);
+		network.setLearningRate(learningRate);
+	}
+	
+	
 	private void changeSet(String string) {
 		try {
 			if (string.equals("test")) {
@@ -146,6 +160,51 @@ public class Program {
 				System.out.println("Not a valid set");
 			}
 		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void getImport(String _path) {
+		String baseWName = "weightData%d.csv";
+		String baseBName = "biasData%d.csv";
+		
+		try {
+			File dir = new File(_path);
+			
+			Matrix[] weights = new Matrix[layers.length-1];
+			Matrix[] biases = new Matrix[layers.length-1];
+			
+			for (int i = 0; i < layers.length-1; i++) {
+				File weightFile = new File(dir, String.format(baseWName, i));
+				File biasFile = new File(dir, String.format(baseBName, i));
+				
+				BufferedReader bWr = new BufferedReader(new FileReader(weightFile));
+				BufferedReader bBr = new BufferedReader(new FileReader(biasFile));
+				
+				Matrix tempBias = new Matrix(layers[i+1], 1);
+				Matrix tempWeight = new Matrix(layers[i+1], layers[i]);
+				
+				//COMPLETE USE LAYER LENGTH TO DETERMINE HOW MUCH LOOPS TO READLINE
+				for (int j = 0; j < layers[i+1]; j++) {
+					double bDouble = Double.parseDouble(bBr.readLine());
+					tempBias.setValue(bDouble, j, 0);
+					
+					String[] tokens = bWr.readLine().split(",");
+					for (int k = 0; k < tokens.length; k++) {
+						double tmpD = Double.parseDouble(tokens[k]);
+						tempWeight.setValue(tmpD, j, k);
+					}
+				}
+				weights[i] = tempWeight;
+				biases[i] = tempBias;
+				
+				bWr.close();
+				bBr.close();
+			}
+			
+			network.setWeights(weights);
+			network.setBiases(biases);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
